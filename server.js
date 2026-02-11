@@ -2,7 +2,7 @@ import express from 'express'
 import multer from 'multer'
 import fs from 'fs'
 import path from 'path'
-import { url } from 'inspector'
+
 
 
 const app = express()
@@ -37,23 +37,28 @@ const upload = multer({
 })
 
 app.post("/upload",upload.fields([{name:'avatar',maxCount:1},{name:'work',maxCount:3}]),(req,res)=>{
-    // console.log(req.file['avatar'])
-    // console.log(req.file['work'])
-    const profileURl = `http://localhost:5000/files/${req.files['avatar'][0].filename}`
-
-    
-
-
-
-
-
     res.json({
         message:"files uploaded",
         viewLinks:{
-            profile:profileURl,
+            profile: `http://localhost:5000/files/${req.files['avatar'][0].filename}`,
             workImages: req.files['work'].map(f =>(`http://localhost:5000/files/${f.filename}`))
         }
     })
+})
+
+
+app.delete("/delete/:filename",(req,res)=>{
+  const fileName = req.params.filename
+  const filePath = path.join("uploads",fileName)
+  fs.unlink(filePath,(err)=>{
+    console.log("can't delete the file")
+    return res.status(500).json({
+        success:false,
+        message:"Server error"
+    })
+  })
+
+
 })
 
 app.listen(PORT,()=>{
